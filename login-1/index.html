@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Form V7</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      background-color: #0b0f19;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(234, 179, 8, 0.12) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(234, 179, 8, 0.08) 0px, transparent 50%);
+    }
+
+    @keyframes card-enter {
+      from { opacity: 0; transform: translateY(18px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes field-enter {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes mode-switch {
+      0% { opacity: 0.55; transform: translateY(5px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .auth-card {
+      animation: card-enter 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    .auth-card input,
+    .auth-card button,
+    .auth-card a {
+      transition: transform 180ms ease, border-color 180ms ease, color 180ms ease,
+        background-color 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
+    }
+
+    .auth-card input:focus {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(234, 179, 8, 0.08);
+    }
+
+    .auth-card button:hover:not(:disabled) {
+      transform: translateY(-2px);
+    }
+
+    .auth-card button:active:not(:disabled) {
+      transform: translateY(0) scale(0.98);
+    }
+
+    .mode-switching {
+      animation: mode-switch 320ms ease-out both;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+  <!-- Background Decorative Glowing Elements -->
+  <div class="fixed top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+  <!-- Card Container -->
+  <div class="auth-card w-full max-w-md bg-zinc-900/80 backdrop-blur-xl border border-zinc-800 rounded-2xl p-8 shadow-2xl relative z-10">
+    
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-bold text-white mb-2" id="form-title">Welcome Back</h1>
+      <p class="text-zinc-400 text-sm" id="form-subtitle">Enter your credentials to access your secure account</p>
+    </div>
+
+    <!-- Form -->
+    <form id="auth-form" class="space-y-4" onsubmit="handleSubmit(event)">
+      
+      <!-- Full Name Input (Register Only) -->
+      <div id="name-field" class="hidden space-y-1">
+        <label class="block text-xs text-zinc-400 font-medium">Full Name</label>
+        <div class="relative">
+          <i class="fa-regular fa-user absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 text-sm"></i>
+          <input type="text" placeholder="Alex Johnson" class="w-full bg-zinc-950/60 border border-zinc-800 rounded-xl py-2.5 pl-10 pr-4 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-amber-500 transition-colors">
+        </div>
+      </div>
+
+      <!-- Email Input -->
+      <div class="space-y-1">
+        <label class="block text-xs text-zinc-400 font-medium">Email Address</label>
+        <div class="relative">
+          <i class="fa-regular fa-envelope absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 text-sm"></i>
+          <input type="email" placeholder="name@domain.com" required class="w-full bg-zinc-950/60 border border-zinc-800 rounded-xl py-2.5 pl-10 pr-4 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-amber-500 transition-colors">
+        </div>
+      </div>
+
+      <!-- Password Grid / Fields -->
+      <div id="password-grid" class="grid grid-cols-1 gap-4">
+        <!-- Password Input -->
+        <div class="space-y-1">
+          <label class="block text-xs text-zinc-400 font-medium">Password</label>
+          <div class="relative">
+            <i class="fa-solid fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 text-sm"></i>
+            <input type="password" placeholder="••••••••••••" required class="w-full bg-zinc-950/60 border border-zinc-800 rounded-xl py-2.5 pl-10 pr-10 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-amber-500 transition-colors">
+            <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300">
+              <i class="fa-regular fa-eye text-sm"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Confirm Password Input (Register Only) -->
+        <div id="confirm-password-field" class="hidden space-y-1">
+          <label class="block text-xs text-zinc-400 font-medium">Confirm Password</label>
+          <div class="relative">
+            <i class="fa-solid fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 text-sm"></i>
+            <input type="password" placeholder="••••••••••••" class="w-full bg-zinc-950/60 border border-zinc-800 rounded-xl py-2.5 pl-10 pr-10 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-amber-500 transition-colors">
+            <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300">
+              <i class="fa-regular fa-eye text-sm"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Options Row -->
+      <div class="flex items-center justify-between pt-1">
+        <!-- Remember Me Checkbox (Login) -->
+        <label id="remember-me-container" class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" class="w-4 h-4 rounded border-zinc-800 bg-zinc-950 text-amber-500 focus:ring-0 focus:ring-offset-0">
+          <span class="text-xs text-zinc-400">Remember me</span>
+        </label>
+
+        <!-- Terms & Privacy Checkbox (Register) -->
+        <label id="terms-container" class="hidden flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" class="w-4 h-4 rounded border-zinc-800 bg-zinc-950 text-amber-500 focus:ring-0 focus:ring-offset-0">
+          <span class="text-xs text-zinc-400">I agree to the <a href="#" class="text-zinc-200 underline">Terms</a> & <a href="#" class="text-zinc-200 underline">Privacy Policy</a></span>
+        </label>
+
+        <!-- Forgot Password Link -->
+        <a href="#" id="forgot-password" class="text-xs text-zinc-400 hover:text-amber-500 transition-colors">Forgot password?</a>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" id="submit-btn" class="w-full mt-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 font-semibold py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-amber-500/10 transition-all">
+        <span>Sign In</span>
+        <i class="fa-solid fa-arrow-right text-xs"></i>
+      </button>
+    </form>
+
+    <!-- Divider -->
+    <div class="relative my-6 text-center">
+      <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-zinc-800"></div></div>
+      <span class="relative bg-zinc-900 px-3 text-[10px] tracking-wider text-zinc-500 uppercase font-semibold">OR CONTINUE WITH</span>
+    </div>
+
+    <!-- Social Login Buttons -->
+    <div class="grid grid-cols-2 gap-3">
+      <button type="button" id="google-login-btn" onclick="handleSocialLogin('Google', this)" class="flex items-center justify-center gap-2 bg-zinc-950/60 border border-zinc-800 hover:border-zinc-700 text-zinc-300 py-2 rounded-xl text-xs font-medium transition-colors">
+        <i class="fa-brands fa-google text-sm"></i>
+        <span>Google</span>
+      </button>
+      <button type="button" id="apple-login-btn" onclick="handleSocialLogin('Apple', this)" class="flex items-center justify-center gap-2 bg-zinc-950/60 border border-zinc-800 hover:border-zinc-700 text-zinc-300 py-2 rounded-xl text-xs font-medium transition-colors">
+        <i class="fa-brands fa-apple text-sm"></i>
+        <span>Apple</span>
+      </button>
+    </div>
+    <p id="social-status" class="min-h-4 mt-3 text-center text-xs text-zinc-500" role="status" aria-live="polite"></p>
+
+    <!-- Toggle Login/Register -->
+    <div class="mt-8 text-center text-xs text-zinc-400">
+      <span id="toggle-text">Don't have an account?</span>
+      <button onclick="toggleFormMode()" id="toggle-btn" class="ml-1 text-amber-500 font-semibold hover:underline">SIGN UP</button>
+    </div>
+  </div>
+
+  <script>
+    let isLoginMode = true;
+
+    function toggleFormMode() {
+      isLoginMode = !isLoginMode;
+
+      const title = document.getElementById('form-title');
+      const subtitle = document.getElementById('form-subtitle');
+      const nameField = document.getElementById('name-field');
+      const confirmPasswordField = document.getElementById('confirm-password-field');
+      const passwordGrid = document.getElementById('password-grid');
+      const rememberMe = document.getElementById('remember-me-container');
+      const terms = document.getElementById('terms-container');
+      const forgotPassword = document.getElementById('forgot-password');
+      const submitBtn = document.getElementById('submit-btn');
+      const toggleText = document.getElementById('toggle-text');
+      const toggleBtn = document.getElementById('toggle-btn');
+      const animatedSections = [nameField, passwordGrid, rememberMe, terms, forgotPassword];
+
+      if (isLoginMode) {
+        title.innerText = "Welcome Back";
+        subtitle.innerText = "Enter your credentials to access your secure account";
+        nameField.classList.add('hidden');
+        confirmPasswordField.classList.add('hidden');
+        passwordGrid.classList.remove('grid-cols-2');
+        passwordGrid.classList.add('grid-cols-1');
+        rememberMe.classList.remove('hidden');
+        terms.classList.add('hidden');
+        forgotPassword.classList.remove('hidden');
+        submitBtn.querySelector('span').innerText = "Sign In";
+        toggleText.innerText = "Don't have an account?";
+        toggleBtn.innerText = "SIGN UP";
+      } else {
+        title.innerText = "Create Account";
+        subtitle.innerText = "Get started today – access your workspace";
+        nameField.classList.remove('hidden');
+        confirmPasswordField.classList.remove('hidden');
+        passwordGrid.classList.remove('grid-cols-1');
+        passwordGrid.classList.add('grid-cols-2');
+        rememberMe.classList.add('hidden');
+        terms.classList.remove('hidden');
+        forgotPassword.classList.add('hidden');
+        submitBtn.querySelector('span').innerText = "Create Account";
+        toggleText.innerText = "Already have an account?";
+        toggleBtn.innerText = "SIGN IN";
+      }
+
+      animatedSections.forEach((section, index) => {
+        if (!section.classList.contains('hidden')) {
+          section.classList.remove('mode-switching');
+          void section.offsetWidth;
+          section.style.animationDelay = `${index * 35}ms`;
+          section.classList.add('mode-switching');
+        }
+      });
+    }
+
+    function handleSubmit(e) {
+      e.preventDefault();
+      alert(isLoginMode ? "Signing in..." : "Creating account...");
+    }
+
+    function handleSocialLogin(provider, button) {
+      const status = document.getElementById('social-status');
+      const buttonLabel = button.querySelector('span');
+      const originalLabel = buttonLabel.innerText;
+
+      button.disabled = true;
+      button.classList.add('opacity-70', 'cursor-wait');
+      buttonLabel.innerText = `Connecting to ${provider}...`;
+      status.innerText = `Preparing ${provider} sign-in...`;
+      status.classList.remove('text-red-400');
+      status.classList.add('text-amber-500');
+
+      window.setTimeout(() => {
+        button.disabled = false;
+        button.classList.remove('opacity-70', 'cursor-wait');
+        buttonLabel.innerText = originalLabel;
+        status.innerText = `${provider} sign-in is ready to connect. Add your OAuth redirect to continue.`;
+        status.classList.remove('text-amber-500');
+        status.classList.add('text-zinc-500');
+      }, 900);
+    }
+  </script>
+</body>
+</html>
