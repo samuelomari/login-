@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block title %}Search Rental Houses in Kenya — HouseHunt Kenya{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2rem; padding-bottom: 4rem;">
+    <!-- Breadcrumb / Header -->
+    <div style="margin-bottom: 1.5rem;">
+        <h1 style="font-size: 2rem; font-weight: 800; color: #fff;">Discover Verified Rental Houses</h1>
+        <p style="color: var(--text-secondary); font-size: 0.95rem;">
+            Filter by estate, transparent move-in costs, water guarantees, and verified landlord status.
+        </p>
+    </div>
+
+    <div class="listings-layout">
+        <!-- Filter Sidebar -->
+        <aside class="filter-sidebar">
+            <form action="{{ url_for('listings') }}" method="GET" id="filterForm">
+                <div class="filter-heading">
+                    <span><i class="fa-solid fa-sliders"></i> Filters</span>
+                    <a href="{{ url_for('listings') }}" style="font-size:0.75rem; color:var(--text-muted); text-transform:none;">Reset All</a>
+                </div>
+
+                <!-- Keyword / Location -->
+                <div class="filter-group">
+                    <label class="form-group-custom">
+                        <span style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:0.3rem;">Location / Landmark</span>
+                        <input type="text" name="q" value="{{ current_filters.q }}" placeholder="e.g. Roysambu, Junction, Kilimani" style="width:100%; padding:0.6rem 0.8rem; background:rgba(9,14,26,0.7); border:1px solid var(--border-subtle); border-radius:var(--radius-md); color:#fff;">
+                    </label>
+                </div>
+
+                <!-- Estate Dropdown -->
+                <div class="filter-group">
+                    <span style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:0.4rem;">Estate / Neighbourhood</span>
+                    <select name="estate" style="width:100%; padding:0.6rem 0.8rem; background:rgba(9,14,26,0.7); border:1px solid var(--border-subtle); border-radius:var(--radius-md); color:#fff;">
+                        <option value="">All Estates</option>
+                        {% for est in estates %}
+                        <option value="{{ est.estate }}" {% if current_filters.estate == est.estate %}selected{% endif %}>{{ est.estate }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Property Type -->
+                <div class="filter-group">
+                    <span style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:0.4rem;">Property Type</span>
+                    <select name="property_type" style="width:100%; padding:0.6rem 0.8rem; background:rgba(9,14,26,0.7); border:1px solid var(--border-subtle); border-radius:var(--radius-md); color:#fff;">
+                        <option value="">All House Types</option>
+                        <option value="Bedsitter" {% if current_filters.property_type == 'Bedsitter' %}selected{% endif %}>Bedsitter</option>
+                        <option value="Studio" {% if current_filters.property_type == 'Studio' %}selected{% endif %}>Studio</option>
+                        <option value="1-Bedroom" {% if current_filters.property_type == '1-Bedroom' %}selected{% endif %}>1-Bedroom</option>
+                        <option value="2-Bedroom" {% if current_filters.property_type == '2-Bedroom' %}selected{% endif %}>2-Bedroom</option>
+                        <option value="3-Bedroom" {% if current_filters.property_type == '3-Bedroom' %}selected{% endif %}>3-Bedroom</option>
+                    </select>
+                </div>
+
+                <!-- Monthly Rent Range -->
+                <div class="filter-group">
+                    <span style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:0.4rem;">Monthly Rent (KSh)</span>
+                    <div class="range-inputs">
+                        <input type="number" name="min_rent" value="{{ current_filters.min_rent }}" placeholder="Min" style="width:100%; padding:0.5rem; background:rgba(9,14,26,0.7); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); color:#fff;">
+                        <input type="number" name="max_rent" value="{{ current_filters.max_rent }}" placeholder="Max" style="width:100%; padding:0.5rem; background:rgba(9,14,26,0.7); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); color:#fff;">
+                    </div>
+                </div>
+
+                <!-- Max Upfront Move-in Cost -->
+                <div class="filter-group">
+                    <span style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:0.4rem;">Max Move-in Budget (Upfront)</span>
+                    <input type="number" name="max_upfront" value="{{ current_filters.max_upfront }}" placeholder="e.g. 50,000 total move-in" style="width:100%; padding:0.6rem; background:rgba(9,14,26,0.7); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); color:#fff;">
+                    <small style="color:var(--text-muted); font-size:0.72rem; display:block; margin-top:0.3rem;">Filters by Rent + Deposit + Utilities total.</small>
+                </div>
+
+                <!-- Trust Filter -->
+                <div class="filter-group">
+                    <span style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:0.4rem;">Trust & Verification</span>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="verified_only" value="1" {% if current_filters.verified_only %}checked{% endif %}>
+                        <span><i class="fa-solid fa-certificate" style="color:var(--emerald-verified)"></i> Verified Units Only</span>
+                    </label>
+                </div>
+
+                <!-- Amenities Filter -->
+                <div class="filter-group">
+                    <span style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:0.6rem;">Essential Amenities</span>
+                    {% for amen in amenities %}
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="amenities" value="{{ amen.id }}" {% if amen.id in selected_amenities %}checked{% endif %}>
+                        <span><i class="fa-solid {{ amen.icon }}" style="color:var(--gold-accent); width:18px;"></i> {{ amen.name }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width:100%; margin-top:1rem;">
+                    <i class="fa-solid fa-filter"></i> Apply Filters
+                </button>
+            </form>
+        </aside>
+
+        <!-- Listings Content Area -->
+        <main>
+            <!-- Toolbar -->
+            <div class="listings-toolbar">
+                <div style="font-size:0.95rem; color:var(--text-secondary);">
+                    Showing <strong style="color:#fff;">{{ total_count }}</strong> verified properties
+                </div>
+
+                <div style="display:flex; align-items:center; gap:1rem;">
+                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                        <span style="font-size:0.85rem; color:var(--text-muted);">Sort by:</span>
+                        <select onchange="document.getElementById('filterForm').elements['sort'].value = this.value; document.getElementById('filterForm').submit();" style="padding:0.4rem 0.75rem; background:rgba(9,14,26,0.8); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); color:#fff; font-size:0.85rem;">
+                            <option value="verified" {% if current_filters.sort == 'verified' %}selected{% endif %}>Verified & Promoted</option>
+                            <option value="price_asc" {% if current_filters.sort == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+                            <option value="price_desc" {% if current_filters.sort == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+                            <option value="newest" {% if current_filters.sort == 'newest' %}selected{% endif %}>Newest First</option>
+                        </select>
+                        <input type="hidden" name="sort" form="filterForm" value="{{ current_filters.sort }}">
+                    </div>
+
+                    <div class="view-toggles">
+                        <button class="btn-view-toggle active" id="viewGridBtn" title="Grid View">
+                            <i class="fa-solid fa-grip"></i>
+                        </button>
+                        <button class="btn-view-toggle" id="viewListBtn" title="List View">
+                            <i class="fa-solid fa-list"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Properties Container -->
+            {% if properties %}
+            <div class="properties-grid" id="propertiesGrid">
+                {% for prop in properties %}
+                <div class="property-card">
+                    <div class="card-image-wrap">
+                        <img src="{{ prop.featured_image }}" class="card-image" alt="{{ prop.title }}" loading="lazy">
+                        {% if prop.is_property_verified %}
+                        <span class="badge-verified-property">
+                            <i class="fa-solid fa-certificate"></i> Verified
+                        </span>
+                        {% endif %}
+                        {% if prop.is_promoted %}
+                        <span class="badge-promoted">Promoted</span>
+                        {% endif %}
+                        <button class="btn-card-fav {% if prop.id in user_favorites %}active{% endif %}" data-prop-id="{{ prop.id }}" title="Save to favorites">
+                            <i class="{% if prop.id in user_favorites %}fa-solid fa-heart{% else %}fa-regular fa-heart{% endif %}"></i>
+                        </button>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="card-location">
+                            <i class="fa-solid fa-location-dot"></i> {{ prop.estate }}, {{ prop.town }}
+                            {% if prop.landmark %}&bull; <span style="color:var(--text-muted);">{{ prop.landmark }}</span>{% endif %}
+                        </div>
+
+                        <h3 class="card-title">
+                            <a href="{{ url_for('property_detail', prop_id=prop.id) }}">{{ prop.title }}</a>
+                        </h3>
+
+                        <div class="card-price-row">
+                            <div class="card-rent">
+                                KSh {{ "{:,.0f}".format(prop.monthly_rent) }} <span>/ mo</span>
+                            </div>
+                            <div class="card-upfront-pill" title="Upfront cash required: Rent + Security Deposit + Utility Deposits">
+                                Move-in: <strong>KSh {{ "{:,.0f}".format(prop.total_upfront_cost) }}</strong>
+                            </div>
+                        </div>
+
+                        <div class="card-pills">
+                            <span class="pill-item"><i class="fa-solid fa-house"></i> {{ prop.property_type }}</span>
+                            <span class="pill-item"><i class="fa-solid fa-droplet"></i> {{ prop.water_source.split(' ')[0] }}</span>
+                            <span class="pill-item"><i class="fa-solid fa-bolt"></i> Token Meter</span>
+                        </div>
+
+                        <div class="card-footer">
+                            <div class="landlord-mini">
+                                <i class="fa-solid fa-user-check verified-icon"></i>
+                                <span>{{ prop.landlord_name }}</span>
+                            </div>
+                            <div style="display:flex; gap:0.4rem;">
+                                <button class="btn btn-secondary btn-sm btn-add-compare" data-prop-id="{{ prop.id }}" data-prop-title="{{ prop.title }}">
+                                    <i class="fa-solid fa-code-compare"></i> Compare
+                                </button>
+                                <a href="{{ url_for('property_detail', prop_id=prop.id) }}" class="btn btn-primary btn-sm">
+                                    Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div style="background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:var(--radius-lg); padding:3.5rem; text-align:center;">
+                <i class="fa-solid fa-house-circle-xmark" style="font-size:3rem; color:var(--text-muted); margin-bottom:1rem;"></i>
+                <h3 style="font-size:1.4rem; color:#fff; margin-bottom:0.5rem;">No houses matched your exact search filters</h3>
+                <p style="color:var(--text-secondary); max-width:480px; margin:0 auto 1.5rem;">
+                    Try widening your rent range, clearing specific amenity checkboxes, or searching another nearby Nairobi estate.
+                </p>
+                <a href="{{ url_for('listings') }}" class="btn btn-outline">
+                    <i class="fa-solid fa-rotate-left"></i> Reset All Filters
+                </a>
+            </div>
+            {% endif %}
+
+            {% if total_pages > 1 %}
+            <div class="pagination-bar">
+                <a class="pagination-link {% if page <= 1 %}disabled-page{% endif %}" href="{{ url_for('listings', q=current_filters.q, estate=current_filters.estate, town=current_filters.town, property_type=current_filters.property_type, min_rent=current_filters.min_rent, max_rent=current_filters.max_rent, max_upfront=current_filters.max_upfront, verified_only=current_filters.verified_only, sort=current_filters.sort, page=page-1) }}">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </a>
+                {% for p in range(1, total_pages + 1) %}
+                <a class="pagination-link {% if p == page %}current-page{% endif %}" href="{{ url_for('listings', q=current_filters.q, estate=current_filters.estate, town=current_filters.town, property_type=current_filters.property_type, min_rent=current_filters.min_rent, max_rent=current_filters.max_rent, max_upfront=current_filters.max_upfront, verified_only=current_filters.verified_only, sort=current_filters.sort, page=p) }}">{{ p }}</a>
+                {% endfor %}
+                <a class="pagination-link {% if page >= total_pages %}disabled-page{% endif %}" href="{{ url_for('listings', q=current_filters.q, estate=current_filters.estate, town=current_filters.town, property_type=current_filters.property_type, min_rent=current_filters.min_rent, max_rent=current_filters.max_rent, max_upfront=current_filters.max_upfront, verified_only=current_filters.verified_only, sort=current_filters.sort, page=page+1) }}">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </a>
+                <div class="pagination-info">Page {{ page }} of {{ total_pages }} — {{ total_count }} houses found</div>
+            </div>
+            {% endif %}
+        </main>
+    </div>
+</div>
+{% endblock %}
+

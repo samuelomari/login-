@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="container hero-content">
+        <div class="hero-tag">
+            <i class="fa-solid fa-location-dot"></i> <span>Designed for the Kenyan Rental Market</span>
+        </div>
+        <h1 class="hero-title">
+            Find a home. Verify the listing. <br><span class="gradient-text">Move with confidence.</span>
+        </h1>
+        <p class="hero-subtitle">
+            Say goodbye to fake agents, surprise viewing fees, hidden move-in deposits, and "water problems". Discover genuine houses in Nairobi and beyond with 100% upfront pricing transparency.
+        </p>
+
+        <!-- Main Search Form -->
+        <div class="hero-search-card">
+            <form action="{{ url_for('listings') }}" method="GET" class="search-form-grid">
+                <div class="form-group-custom">
+                    <label>Estate / Landmark</label>
+                    <div class="input-with-icon">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <input type="text" name="q" placeholder="e.g. Kilimani, TRM, Rongai, Ruaka..." autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="form-group-custom">
+                    <label>House Type</label>
+                    <div class="input-with-icon">
+                        <i class="fa-solid fa-house"></i>
+                        <select name="property_type">
+                            <option value="">Any Type</option>
+                            <option value="Bedsitter">Bedsitter</option>
+                            <option value="Studio">Studio</option>
+                            <option value="1-Bedroom">1-Bedroom</option>
+                            <option value="2-Bedroom">2-Bedroom</option>
+                            <option value="3-Bedroom">3-Bedroom</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group-custom">
+                    <label>Max Monthly Rent</label>
+                    <div class="input-with-icon">
+                        <i class="fa-solid fa-money-bill-wave"></i>
+                        <input type="number" name="max_rent" placeholder="KSh (e.g. 25,000)" step="500">
+                    </div>
+                </div>
+
+                <div class="form-group-custom">
+                    <label>Trust Level</label>
+                    <div class="input-with-icon">
+                        <i class="fa-solid fa-certificate"></i>
+                        <select name="verified_only">
+                            <option value="0">All Listings</option>
+                            <option value="1" selected>Verified Only</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fa-solid fa-magnifying-glass"></i> Search
+                </button>
+            </form>
+
+            <!-- Natural Language AI House Hunting Assistant -->
+            <form id="aiAssistantForm" class="ai-assistant-strip">
+                <div class="ai-badge">
+                    <i class="fa-solid fa-sparkles"></i> AI Assistant
+                </div>
+                <input 
+                    type="text" 
+                    id="aiAssistantInput" 
+                    class="ai-input" 
+                    placeholder="Try: 'Looking for a 2-bedroom in Rongai under 25k with parking and borehole water'..."
+                >
+                <button type="submit" class="btn btn-primary btn-sm">
+                    <i class="fa-solid fa-magnifying-glass"></i> Find
+                </button>
+            </form>
+        </div>
+
+        <!-- AI Results Injection Box (Hidden by default, shown when AI query executed) -->
+        <div id="aiResultsBox" style="display:none; text-align:left;"></div>
+
+        <!-- Hero Stats -->
+        <div class="hero-stats">
+            <div class="stat-item">
+                <span class="stat-num">{{ total_listings }}+</span>
+                <span class="stat-label">Active Listings in Kenya</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-num">{{ verified_listings }}</span>
+                <span class="stat-label">Verified Landlords & Units</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-num">KSh 0</span>
+                <span class="stat-label">Viewing Fees Allowed</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-num">100%</span>
+                <span class="stat-label">Upfront Deposit Disclosure</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container">
+    <!-- Anti-Scam Security Banner -->
+    <div class="trust-banner">
+        <div class="trust-banner-content">
+            <div class="trust-banner-icon">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <div>
+                <h3 class="trust-banner-title">Our Anti-Scam Commitment for Kenya House Hunters</h3>
+                <p class="trust-banner-text">
+                    Never pay viewing fees, "gate pass fees", or booking deposits before you visit the property and meet the verified landlord or authorized agent in person. Report suspicious demands directly to our moderation team.
+                </p>
+            </div>
+        </div>
+        <a href="{{ url_for('listings', verified_only=1) }}" class="btn btn-outline btn-sm" style="flex-shrink:0;">
+            <i class="fa-solid fa-certificate"></i> Browse Verified
+        </a>
+    </div>
+
+    <!-- Featured Properties Section -->
+    <section class="section">
+        <div class="section-header">
+            <div>
+                <h2 class="section-title">Verified Rentals in Nairobi</h2>
+                <p class="section-subtitle">Inspected listings with fully disclosed move-in costs, water guarantees, and token meters.</p>
+            </div>
+            <a href="{{ url_for('listings') }}" class="btn btn-outline btn-sm">
+                View All Listings <i class="fa-solid fa-arrow-right"></i>
+            </a>
+        </div>
+
+        <div class="properties-grid" id="propertiesGrid">
+            {% for prop in featured_properties %}
+            <div class="property-card">
+                <div class="card-image-wrap">
+                    <img src="{{ prop.featured_image }}" class="card-image" alt="{{ prop.title }}" loading="lazy">
+                    {% if prop.is_property_verified %}
+                    <span class="badge-verified-property">
+                        <i class="fa-solid fa-certificate"></i> Verified
+                    </span>
+                    {% endif %}
+                    {% if prop.is_promoted %}
+                    <span class="badge-promoted">Promoted</span>
+                    {% endif %}
+                    <button class="btn-card-fav" data-prop-id="{{ prop.id }}" title="Save to favorites">
+                        <i class="fa-regular fa-heart"></i>
+                    </button>
+                </div>
+
+                <div class="card-body">
+                    <div class="card-location">
+                        <i class="fa-solid fa-location-dot"></i> {{ prop.estate }}, {{ prop.town }}
+                        {% if prop.landmark %}&bull; <span style="color:var(--text-muted);">{{ prop.landmark }}</span>{% endif %}
+                    </div>
+                    <h3 class="card-title">
+                        <a href="{{ url_for('property_detail', prop_id=prop.id) }}">{{ prop.title }}</a>
+                    </h3>
+
+                    <div class="card-price-row">
+                        <div class="card-rent">
+                            KSh {{ "{:,.0f}".format(prop.monthly_rent) }} <span>/ mo</span>
+                        </div>
+                        <div class="card-upfront-pill" title="Total estimated cash required on move-in day: Rent + Security Deposit + Water/Power deposits">
+                            Move-in: <strong>KSh {{ "{:,.0f}".format(prop.total_upfront_cost) }}</strong>
+                        </div>
+                    </div>
+
+                    <div class="card-pills">
+                        <span class="pill-item"><i class="fa-solid fa-house"></i> {{ prop.property_type }}</span>
+                        <span class="pill-item"><i class="fa-solid fa-droplet"></i> {{ prop.water_source.split(' ')[0] }}</span>
+                        <span class="pill-item"><i class="fa-solid fa-bolt"></i> Token Meter</span>
+                    </div>
+
+                    <div class="card-footer">
+                        <div class="landlord-mini">
+                            <i class="fa-solid fa-user-check verified-icon"></i>
+                            <span>{{ prop.landlord_name }}</span>
+                        </div>
+                        <div style="display:flex; gap:0.4rem;">
+                            <button class="btn btn-secondary btn-sm btn-add-compare" data-prop-id="{{ prop.id }}" data-prop-title="{{ prop.title }}">
+                                <i class="fa-solid fa-code-compare"></i> Compare
+                            </button>
+                            <a href="{{ url_for('property_detail', prop_id=prop.id) }}" class="btn btn-primary btn-sm">
+                                Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Upfront Cost Calculator Callout Section -->
+    <section class="section" style="padding-top:1rem;">
+        <div style="background:linear-gradient(135deg, rgba(22, 32, 50, 0.9), rgba(15, 23, 42, 0.95)); border:1px solid var(--gold-border); border-radius:var(--radius-lg); padding:2.5rem; display:grid; grid-template-columns:1.2fr 1fr; gap:2.5rem; align-items:center;">
+            <div>
+                <span style="color:var(--gold-bright); font-size:0.85rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em;">Financial Transparency</span>
+                <h2 style="font-size:2rem; font-weight:800; margin:0.5rem 0 1rem; color:#fff;">Never get blindsided by hidden move-in costs in Kenya.</h2>
+                <p style="color:var(--text-secondary); margin-bottom:1.5rem; font-size:0.95rem;">
+                    A house listed at <strong>KSh 15,000/month</strong> can end up costing over <strong>KSh 38,000 upfront</strong> once you factor in double deposits, KPLC meter transfer charges, water security, and moving transport.
+                </p>
+                <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+                    <a href="{{ url_for('calculator') }}" class="btn btn-primary btn-lg">
+                        <i class="fa-solid fa-calculator"></i> Launch Move-in Calculator
+                    </a>
+                    <a href="{{ url_for('listings') }}" class="btn btn-outline btn-lg">
+                        Browse Listings
+                    </a>
+                </div>
+            </div>
+
+            <div style="background:rgba(9, 14, 26, 0.8); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:1.5rem;">
+                <h4 style="color:var(--gold-bright); margin-bottom:1rem; font-size:1.1rem; display:flex; align-items:center; gap:0.5rem;">
+                    <i class="fa-solid fa-receipt"></i> Sample Upfront Cost Itemization
+                </h4>
+                <table class="cost-breakdown-table">
+                    <tr><td>1st Month Rent</td><td>KSh 15,000</td></tr>
+                    <tr><td>Security Deposit (Refundable)</td><td>KSh 15,000</td></tr>
+                    <tr><td>Water Meter Deposit</td><td>KSh 1,500</td></tr>
+                    <tr><td>Electricity Token Deposit</td><td>KSh 1,000</td></tr>
+                    <tr><td>Garbage Collection</td><td>KSh 350</td></tr>
+                    <tr><td>Moving Van / Truck (Nairobi)</td><td>KSh 4,500</td></tr>
+                    <tr class="total-row"><td>Total Required to Move In</td><td>KSh 37,350</td></tr>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Popular Kenyan Estates Guide -->
+    <section class="section">
+        <div class="section-header">
+            <div>
+                <h2 class="section-title">Popular Nairobi Neighbourhoods</h2>
+                <p class="section-subtitle">Explore typical rent ranges, water stability, and commute access.</p>
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:1.25rem;">
+            <a href="{{ url_for('listings', estate='Kilimani') }}" class="detail-card" style="margin-bottom:0; text-decoration:none;">
+                <h3 style="color:var(--gold-bright); font-size:1.15rem; margin-bottom:0.3rem;">Kilimani</h3>
+                <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.75rem;">Wood Ave, Dennis Pritt, Argwings Kodhek</p>
+                <div style="font-size:0.85rem; color:#fff;">Rent range: <strong>KSh 35,000 – 120,000</strong></div>
+                <div style="font-size:0.78rem; color:var(--emerald-verified); margin-top:0.3rem;"><i class="fa-solid fa-water"></i> Steady Borehole + Elevators</div>
+            </a>
+
+            <a href="{{ url_for('listings', estate='Roysambu') }}" class="detail-card" style="margin-bottom:0; text-decoration:none;">
+                <h3 style="color:var(--gold-bright); font-size:1.15rem; margin-bottom:0.3rem;">Roysambu & TRM</h3>
+                <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.75rem;">TRM Drive, Lumumba Drive, Mirema</p>
+                <div style="font-size:0.85rem; color:#fff;">Rent range: <strong>KSh 10,000 – 25,000</strong></div>
+                <div style="font-size:0.78rem; color:var(--emerald-verified); margin-top:0.3rem;"><i class="fa-solid fa-bolt"></i> Separate Token Meters common</div>
+            </a>
+
+            <a href="{{ url_for('listings', estate='Ruaka') }}" class="detail-card" style="margin-bottom:0; text-decoration:none;">
+                <h3 style="color:var(--gold-bright); font-size:1.15rem; margin-bottom:0.3rem;">Ruaka</h3>
+                <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.75rem;">Limuru Road, Two Rivers proximity</p>
+                <div style="font-size:0.85rem; color:#fff;">Rent range: <strong>KSh 18,000 – 45,000</strong></div>
+                <div style="font-size:0.78rem; color:var(--emerald-verified); margin-top:0.3rem;"><i class="fa-solid fa-wifi"></i> High-Speed Fiber Ready</div>
+            </a>
+
+            <a href="{{ url_for('listings', estate='Ongata Rongai') }}" class="detail-card" style="margin-bottom:0; text-decoration:none;">
+                <h3 style="color:var(--gold-bright); font-size:1.15rem; margin-bottom:0.3rem;">Ongata Rongai</h3>
+                <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.75rem;">Rimpa, Maasai Mall, Tumaini</p>
+                <div style="font-size:0.85rem; color:#fff;">Rent range: <strong>KSh 12,000 – 35,000</strong></div>
+                <div style="font-size:0.78rem; color:var(--emerald-verified); margin-top:0.3rem;"><i class="fa-solid fa-car"></i> Spacious compounds with parking</div>
+            </a>
+        </div>
+    </section>
+</div>
+{% endblock %}
+

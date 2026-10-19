@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}My House-Hunting Dashboard — HouseHunt Kenya{% endblock %}
+{% block content %}
+<div class="container" style="padding-top: 2.5rem; padding-bottom: 4rem;">
+    <span class="hero-tag"><i class="fa-solid fa-gauge-high"></i> Seeker Dashboard</span>
+    <h1 style="font-size:2.1rem; font-weight:800; color:#fff; margin-top:0.5rem;">Karibu, {{ current_user.full_name.split(' ')[0] }}</h1>
+    <p style="color:var(--text-secondary); margin-bottom:1.75rem;">Track saved houses, viewings, inquiries and alerts in one place.</p>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1.1rem; margin-bottom:2rem;">
+        <div style="background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:1.2rem;">
+            <div style="font-size:0.78rem; color:var(--text-muted); text-transform:uppercase;">Saved Houses</div>
+            <div style="font-size:1.9rem; font-weight:800; color:var(--gold-bright);">{{ favorites|length }}</div>
+            <a href="{{ url_for('favorites') }}" style="font-size:0.82rem; color:var(--gold-bright);">View all saved</a>
+        </div>
+        <div style="background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:1.2rem;">
+            <div style="font-size:0.78rem; color:var(--text-muted); text-transform:uppercase;">Viewings</div>
+            <div style="font-size:1.9rem; font-weight:800; color:#fff;">{{ viewings|length }}</div>
+            <a href="{{ url_for('listings') }}" style="font-size:0.82rem; color:var(--gold-bright);">Find houses</a>
+        </div>
+        <div style="background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:1.2rem;">
+            <div style="font-size:0.78rem; color:var(--text-muted); text-transform:uppercase;">Inquiries</div>
+            <div style="font-size:1.9rem; font-weight:800; color:var(--emerald-verified);">{{ inquiries|length }}</div>
+            <a href="{{ url_for('notifications') }}" style="font-size:0.82rem; color:var(--gold-bright);">Check responses</a>
+        </div>
+    </div>
+    <div class="detail-card">
+        <h2 class="detail-card-title"><i class="fa-solid fa-heart"></i> Recently Saved</h2>
+        {% if favorites %}{% for p in favorites %}
+        <div style="display:flex; gap:0.9rem; align-items:center; padding:0.7rem 0; border-bottom:1px solid var(--border-subtle);">
+            <div style="flex:1;">
+                <a href="{{ url_for('property_detail', prop_id=p.id) }}" style="color:#fff; font-weight:700;">{{ p.title }}</a>
+                <div style="color:var(--text-muted); font-size:0.8rem;">{{ p.estate }} — KSh {{ "{:,.0f}".format(p.monthly_rent) }}/mo</div>
+            </div>
+        </div>
+        {% endfor %}{% else %}
+        <p style="color:var(--text-muted);">No saved houses yet.</p>
+        {% endif %}
+    </div>
+    <div class="detail-card" style="margin-top:1.5rem;">
+        <h2 class="detail-card-title"><i class="fa-solid fa-calendar-check"></i> My Viewings</h2>
+        {% if viewings %}{% for v in viewings %}
+        <div style="padding:0.6rem 0; border-bottom:1px solid var(--border-subtle); font-size:0.88rem;">
+            <strong style="color:#fff;">{{ v.property_title }}</strong>
+            <div style="color:var(--text-secondary);">{{ v.preferred_date }} — {{ v.preferred_time }} ({{ v.status }})</div>
+        </div>
+        {% endfor %}{% else %}
+        <p style="color:var(--text-muted);">No viewing requests yet.</p>
+        {% endif %}
+    </div>
+    <div class="detail-card" style="margin-top:1.5rem;">
+        <h2 class="detail-card-title"><i class="fa-solid fa-bell"></i> Latest Alerts</h2>
+        {% if notifications %}{% for n in notifications %}
+        <div style="padding:0.6rem 0; border-bottom:1px solid var(--border-subtle); font-size:0.87rem;">
+            <strong style="color:#fff;">{{ n.title }}</strong>
+            <div style="color:var(--text-secondary);">{{ n.message[:120] }}</div>
+        </div>
+        {% endfor %}
+        <a href="{{ url_for('notifications') }}" class="btn btn-outline btn-sm" style="margin-top:0.8rem;">Open inbox</a>
+        {% else %}<p style="color:var(--text-muted);">No alerts yet.</p>{% endif %}
+    </div>
+</div>
+{% endblock %}

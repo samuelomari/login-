@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Compare Houses Side-by-Side — HouseHunt Kenya{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2.5rem; padding-bottom: 4rem;">
+    <!-- Header -->
+    <div style="margin-bottom: 2rem;">
+        <span class="hero-tag"><i class="fa-solid fa-code-compare"></i> Side-by-Side Comparison</span>
+        <h1 style="font-size: 2.25rem; font-weight: 800; color: #fff; margin-top: 0.5rem;">
+            Compare Properties
+        </h1>
+        <p style="color: var(--text-secondary); font-size: 0.95rem;">
+            Evaluate monthly rent, required move-in capital, water security, and verification badges side-by-side.
+        </p>
+    </div>
+
+    {% if properties %}
+    <div style="overflow-x: auto; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.5rem;">
+        <table style="width: 100%; border-collapse: collapse; min-width: 650px;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--gold-border);">
+                    <th style="padding: 1rem; text-align: left; width: 220px; color: var(--gold-bright); font-size: 0.95rem;">
+                        Features & Pricing
+                    </th>
+                    {% for p in properties %}
+                    <th style="padding: 1rem; text-align: center; width: calc(78% / {{ properties|length }});">
+                        <div style="aspect-ratio: 16/10; border-radius: var(--radius-md); overflow: hidden; margin-bottom: 0.75rem; background: #000;">
+                            <img src="{{ p.featured_image }}" style="width: 100%; height: 100%; object-fit: cover;" alt="{{ p.title }}">
+                        </div>
+                        <h4 style="font-size: 1rem; color: #fff; margin-bottom: 0.25rem;">
+                            <a href="{{ url_for('property_detail', prop_id=p.id) }}">{{ p.title }}</a>
+                        </h4>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">
+                            <i class="fa-solid fa-location-dot" style="color: var(--gold-accent);"></i> {{ p.estate }}, {{ p.town }}
+                        </div>
+                    </th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Monthly Rent -->
+                <tr style="border-bottom: 1px solid var(--border-subtle);">
+                    <td style="padding: 1rem; font-weight: 700; color: #fff;">Monthly Rent</td>
+                    {% for p in properties %}
+                    <td style="padding: 1rem; text-align: center; font-size: 1.35rem; font-weight: 800; color: var(--gold-bright);">
+                        KSh {{ "{:,.0f}".format(p.monthly_rent) }}
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Total Move-in Cost (The Game Changer) -->
+                <tr style="border-bottom: 1px solid var(--border-subtle); background: rgba(245, 158, 11, 0.05);">
+                    <td style="padding: 1rem; font-weight: 700; color: var(--gold-bright);">
+                        Total Upfront Move-in Cost
+                        <small style="display:block; color:var(--text-muted); font-size:0.72rem; font-weight:normal;">Rent + Deposit + Water/Power</small>
+                    </td>
+                    {% for p in properties %}
+                    <td style="padding: 1rem; text-align: center; font-size: 1.25rem; font-weight: 800; color: #fff;">
+                        KSh {{ "{:,.0f}".format(p.total_upfront_cost) }}
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Security Deposit -->
+                <tr style="border-bottom: 1px solid var(--border-subtle);">
+                    <td style="padding: 1rem; color: var(--text-secondary);">Security Deposit</td>
+                    {% for p in properties %}
+                    <td style="padding: 1rem; text-align: center; color: #fff;">
+                        KSh {{ "{:,.0f}".format(p.security_deposit) }}
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Water & Power Deposits -->
+                <tr style="border-bottom: 1px solid var(--border-subtle);">
+                    <td style="padding: 1rem; color: var(--text-secondary);">Utility Deposits</td>
+                    {% for p in properties %}
+                    <td style="padding: 1rem; text-align: center; color: #fff;">
+                        Water: KSh {{ "{:,.0f}".format(p.water_deposit) }}<br>
+                        Power: KSh {{ "{:,.0f}".format(p.electricity_deposit) }}
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Water Arrangement -->
+                <tr style="border-bottom: 1px solid var(--border-subtle);">
+                    <td style="padding: 1rem; color: var(--text-secondary);">Water Source</td>
+                    {% for p in properties %}
+                    <td style="padding: 1rem; text-align: center; font-size: 0.9rem; color: var(--emerald-verified);">
+                        <i class="fa-solid fa-droplet"></i> {{ p.water_source }}
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Electricity Meter -->
+                <tr style="border-bottom: 1px solid var(--border-subtle);">
+                    <td style="padding: 1rem; color: var(--text-secondary);">Electricity Meter</td>
+                    {% for p in properties %}
+                    <td style="padding: 1rem; text-align: center; font-size: 0.88rem; color: #fff;">
+                        <i class="fa-solid fa-bolt" style="color: var(--gold-accent);"></i> {{ p.electricity_type }}
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Landlord Verification -->
+                <tr style="border-bottom: 1px solid var(--border-subtle);">
+                    <td style="padding: 1rem; color: var(--text-secondary);">Trust Verification</td>
+                    {% for p in properties %}
+                    <td style="padding: 1rem; text-align: center;">
+                        {% if p.is_property_verified %}
+                        <span class="verification-status-badge">
+                            <i class="fa-solid fa-certificate"></i> Verified Property
+                        </span>
+                        {% else %}
+                        <span style="color: var(--text-muted); font-size: 0.8rem;">Standard Listing</span>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Direct Action Links -->
+                <tr>
+                    <td style="padding: 1.25rem 1rem;">Action</td>
+                    {% for p in properties %}
+                    <td style="padding: 1.25rem 1rem; text-align: center;">
+                        <a href="{{ url_for('property_detail', prop_id=p.id) }}" class="btn btn-primary btn-sm" style="width: 80%;">
+                            View Property
+                        </a>
+                    </td>
+                    {% endfor %}
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 3.5rem; text-align: center;">
+        <i class="fa-solid fa-code-compare" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+        <h3 style="color: #fff; font-size: 1.35rem; margin-bottom: 0.5rem;">No properties selected for comparison</h3>
+        <p style="color: var(--text-secondary); max-width: 480px; margin: 0 auto 1.5rem;">
+            Browse listings and click the "Compare" button on up to 3 houses to inspect them side-by-side.
+        </p>
+        <a href="{{ url_for('listings') }}" class="btn btn-primary">
+            <i class="fa-solid fa-house"></i> Browse Available Houses
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

@@ -1,0 +1,462 @@
+{% extends "base.html" %}
+
+{% block title %}{{ prop.title }} — HouseHunt Kenya{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2rem; padding-bottom: 4rem;">
+    <!-- Top Breadcrumb & Action Header -->
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
+        <div>
+            <div style="display:flex; align-items:center; gap:0.6rem; font-size:0.85rem; color:var(--text-muted); margin-bottom:0.4rem;">
+                <a href="{{ url_for('listings') }}">Listings</a> &gt; 
+                <a href="{{ url_for('listings', estate=prop.estate) }}">{{ prop.estate }}</a> &gt; 
+                <span>{{ prop.property_type }}</span>
+            </div>
+            <h1 style="font-size:2rem; font-weight:800; color:#fff; line-height:1.25;">{{ prop.title }}</h1>
+            <div style="display:flex; align-items:center; gap:1rem; margin-top:0.5rem; font-size:0.9rem; color:var(--text-secondary); flex-wrap:wrap;">
+                <span><i class="fa-solid fa-location-dot" style="color:var(--gold-accent)"></i> {{ prop.estate }}, {{ prop.town }} ({{ prop.landmark }})</span>
+                <span>&bull;</span>
+                <span><i class="fa-solid fa-calendar-check" style="color:var(--emerald-verified)"></i> Confirmed Available: {{ prop.last_confirmed_date }}</span>
+                <span>&bull;</span>
+                <span><i class="fa-solid fa-eye" style="color:var(--text-muted)"></i> {{ prop.views_count }} views</span>
+            </div>
+        </div>
+
+        <div style="display:flex; gap:0.5rem;">
+            <button class="btn btn-secondary btn-sm btn-card-fav {% if is_favorited %}active{% endif %}" data-prop-id="{{ prop.id }}" style="position:static; width:auto; height:auto; padding:0.6rem 1rem; border-radius:var(--radius-md);">
+                <i class="{% if is_favorited %}fa-solid fa-heart{% else %}fa-regular fa-heart{% endif %}"></i> {% if is_favorited %}Saved{% else %}Save{% endif %}
+            </button>
+            <button class="btn btn-secondary btn-sm btn-add-compare" data-prop-id="{{ prop.id }}" data-prop-title="{{ prop.title }}">
+                <i class="fa-solid fa-code-compare"></i> Compare
+            </button>
+            <button class="btn btn-danger btn-sm" data-modal-target="reportModal">
+                <i class="fa-solid fa-triangle-exclamation"></i> Report
+            </button>
+        </div>
+    </div>
+
+    <!-- Image Gallery -->
+    <div class="gallery-grid">
+        {% if prop.images %}
+            <img src="{{ prop.images[0].image_url }}" class="gallery-main" alt="Featured view of {{ prop.title }}">
+            <div class="gallery-thumbs">
+                {% for img in prop.images[1:3] %}
+                <img src="{{ img.image_url }}" class="gallery-thumb" alt="Additional view">
+                {% endfor %}
+                {% if prop.images|length == 1 %}
+                <img src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80" class="gallery-thumb" alt="Interior">
+                <img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=800&q=80" class="gallery-thumb" alt="Compound">
+                {% endif %}
+            </div>
+        {% else %}
+            <img src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80" class="gallery-main" alt="House">
+        {% endif %}
+    </div>
+
+    <!-- Main Content & Sticky Sidebar Layout -->
+    <div class="property-detail-grid">
+        <!-- Left Column: Details, Amenities, Utilities, Reviews -->
+        <div>
+            <!-- Overview & Description -->
+            <div class="detail-card">
+                <h2 class="detail-card-title"><i class="fa-solid fa-file-lines"></i> Property Overview</h2>
+                <p style="color:var(--text-secondary); font-size:1rem; line-height:1.7; white-space:pre-line;">
+                    {{ prop.description }}
+                </p>
+            </div>
+
+            <!-- Kenyan Utility Arrangements & Reliability -->
+            <div class="detail-card">
+                <h2 class="detail-card-title"><i class="fa-solid fa-faucet-drip"></i> Essential Utilities & Living Arrangements</h2>
+                <div class="utilities-box">
+                    <div class="utility-item">
+                        <div class="utility-icon"><i class="fa-solid fa-droplet"></i></div>
+                        <div class="utility-info">
+                            <h4>Water Supply & Rationing</h4>
+                            <p>{{ prop.water_source }}</p>
+                            <small style="color:var(--emerald-verified); font-size:0.75rem;"><i class="fa-solid fa-circle-check"></i> Constant supply guaranteed</small>
+                        </div>
+                    </div>
+
+                    <div class="utility-item">
+                        <div class="utility-icon"><i class="fa-solid fa-bolt"></i></div>
+                        <div class="utility-info">
+                            <h4>Electricity Setup</h4>
+                            <p>{{ prop.electricity_type }}</p>
+                            <small style="color:var(--text-muted); font-size:0.75rem;">Pay directly to KPLC via Lipa Na M-Pesa</small>
+                        </div>
+                    </div>
+
+                    <div class="utility-item">
+                        <div class="utility-icon"><i class="fa-solid fa-trash-can"></i></div>
+                        <div class="utility-info">
+                            <h4>Garbage Collection</h4>
+                            <p>KSh {{ "{:,.0f}".format(prop.garbage_fee) }} / month</p>
+                            <small style="color:var(--text-muted); font-size:0.75rem;">Collected twice weekly</small>
+                        </div>
+                    </div>
+
+                    <div class="utility-item">
+                        <div class="utility-icon"><i class="fa-solid fa-car"></i></div>
+                        <div class="utility-info">
+                            <h4>Parking & Compound</h4>
+                            <p>Gated Compound</p>
+                            <small style="color:var(--emerald-verified); font-size:0.75rem;"><i class="fa-solid fa-shield-halved"></i> 24/7 Security on site</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Amenities Checklist -->
+            <div class="detail-card">
+                <h2 class="detail-card-title"><i class="fa-solid fa-list-check"></i> Features & Amenities</h2>
+                <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:0.85rem;">
+                    {% for amen in prop.amenities %}
+                    <div style="display:flex; align-items:center; gap:0.6rem; color:#fff; font-size:0.92rem;">
+                        <i class="fa-solid {{ amen.icon }}" style="color:var(--gold-accent); width:20px;"></i>
+                        <span>{{ amen.name }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Verified Tenant Reviews -->
+            <div class="detail-card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
+                    <h2 class="detail-card-title" style="margin-bottom:0;"><i class="fa-solid fa-star"></i> Tenant Ratings & Experience</h2>
+                    <div style="color:var(--gold-bright); font-weight:700;">
+                        <i class="fa-solid fa-star"></i> {{ prop.avg_rating }} ({{ prop.review_count }} verified reviews)
+                    </div>
+                </div>
+
+                {% if reviews %}
+                    <div style="display:flex; flex-direction:column; gap:1rem;">
+                        {% for rev in reviews %}
+                        <div style="background:rgba(9,14,26,0.6); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:1rem;">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem;">
+                                <strong style="color:#fff; font-size:0.95rem;">{{ rev.author_name }}</strong>
+                                <span style="color:var(--gold-bright); font-size:0.85rem;">
+                                    {% for i in range(rev.rating) %}<i class="fa-solid fa-star"></i>{% endfor %}
+                                </span>
+                            </div>
+                            <p style="color:var(--text-secondary); font-size:0.9rem;">"{{ rev.comment }}"</p>
+                            <small style="color:var(--emerald-verified); font-size:0.75rem; display:block; margin-top:0.4rem;">
+                                <i class="fa-solid fa-circle-check"></i> Verified resident feedback
+                            </small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p style="color:var(--text-muted); font-size:0.9rem;">No reviews yet for this listing.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right Column: Transparent Upfront Costs & Landlord Card -->
+        <aside>
+            <!-- Upfront Move-in Cost Breakdown Widget -->
+            <div class="detail-card" style="border-color:var(--gold-border); box-shadow:var(--shadow-gold);">
+                <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:1rem;">
+                    <div>
+                        <span style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase;">Monthly Rent</span>
+                        <div style="font-size:1.85rem; font-weight:800; color:var(--gold-bright);">
+                            KSh {{ "{:,.0f}".format(prop.monthly_rent) }}
+                        </div>
+                    </div>
+                    {% if prop.is_property_verified %}
+                    <span class="verification-status-badge">
+                        <i class="fa-solid fa-certificate"></i> Verified Property
+                    </span>
+                    {% endif %}
+                </div>
+
+                <!-- Cost Breakdown Table -->
+                <div style="background:rgba(9,14,26,0.8); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:1rem; margin-bottom:1.5rem;">
+                    <div style="font-size:0.8rem; font-weight:700; color:var(--gold-bright); text-transform:uppercase; margin-bottom:0.6rem; display:flex; justify-content:space-between;">
+                        <span>Total Move-in Cost</span>
+                        <span title="Disclosed upfront charges before getting the key"><i class="fa-solid fa-circle-info"></i> Disclosed</span>
+                    </div>
+
+                    <table class="cost-breakdown-table">
+                        <tr>
+                            <td>1st Month Rent</td>
+                            <td>KSh {{ "{:,.0f}".format(prop.monthly_rent) }}</td>
+                        </tr>
+                        <tr>
+                            <td>Security Deposit (Refundable)</td>
+                            <td>KSh {{ "{:,.0f}".format(prop.security_deposit) }}</td>
+                        </tr>
+                        <tr>
+                            <td>Water Deposit (Refundable)</td>
+                            <td>KSh {{ "{:,.0f}".format(prop.water_deposit) }}</td>
+                        </tr>
+                        <tr>
+                            <td>Electricity Token Deposit</td>
+                            <td>KSh {{ "{:,.0f}".format(prop.electricity_deposit) }}</td>
+                        </tr>
+                        <tr>
+                            <td>Garbage Fee</td>
+                            <td>KSh {{ "{:,.0f}".format(prop.garbage_fee) }}</td>
+                        </tr>
+                        {% if prop.agent_fee > 0 %}
+                        <tr>
+                            <td>Agent Placement Fee</td>
+                            <td>KSh {{ "{:,.0f}".format(prop.agent_fee) }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td>Agent Placement Fee</td>
+                            <td style="color:var(--emerald-verified);">KSh 0 (Direct Landlord)</td>
+                        </tr>
+                        {% endif %}
+                        <tr class="total-row">
+                            <td>Total Move-in Capital</td>
+                            <td>KSh {{ "{:,.0f}".format(prop.total_upfront_cost) }}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Call to Action Buttons -->
+                <div style="display:flex; flex-direction:column; gap:0.75rem;">
+                    <!-- Schedule Viewing -->
+                    <button class="btn btn-primary btn-lg" data-modal-target="viewingModal" style="width:100%;">
+                        <i class="fa-solid fa-calendar-days"></i> Request Viewing Appointment
+                    </button>
+
+                    <!-- WhatsApp Direct -->
+                    <a href="{{ whatsapp_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-whatsapp btn-lg" style="width:100%;">
+                        <i class="fa-brands fa-whatsapp"></i> Chat on WhatsApp
+                    </a>
+
+                    <!-- In-App Message -->
+                    <button class="btn btn-secondary" data-modal-target="inquiryModal" style="width:100%;">
+                        <i class="fa-solid fa-envelope"></i> Send In-App Inquiry
+                    </button>
+                </div>
+            </div>
+
+            <!-- Landlord / Verified Agent Profile Card -->
+            <div class="landlord-profile-card">
+                <div class="landlord-header">
+                    <div class="landlord-avatar">
+                        {{ prop.landlord_name[0] }}
+                    </div>
+                    <div>
+                        <h4 style="color:#fff; font-size:1.05rem;">{{ prop.landlord_name }}</h4>
+                        <div style="font-size:0.8rem; color:var(--text-secondary); text-transform:capitalize;">
+                            {{ prop.landlord_role }}
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background:rgba(9,14,26,0.6); padding:0.75rem 1rem; border-radius:var(--radius-md); border:1px solid var(--border-subtle); margin-bottom:1rem; font-size:0.85rem;">
+                    <div style="color:var(--emerald-verified); font-weight:700; margin-bottom:0.2rem; display:flex; align-items:center; gap:0.3rem;">
+                        <i class="fa-solid fa-circle-check"></i> Identity Verified
+                    </div>
+                    <div style="color:var(--text-secondary);">
+                        Verification basis: <strong>{{ prop.landlord_verification_type or 'National ID & Phone Verified' }}</strong>
+                    </div>
+                </div>
+
+                {% if prop.landlord_bio %}
+                <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:1rem;">
+                    "{{ prop.landlord_bio }}"
+                </p>
+                {% endif %}
+
+                <div style="font-size:0.85rem; color:var(--text-muted); display:flex; align-items:center; gap:0.5rem;">
+                    <i class="fa-solid fa-phone"></i> {{ prop.landlord_phone }}
+                </div>
+            </div>
+
+            <!-- Anti-Scam Warning for this listing -->
+            <div style="background:rgba(239, 68, 68, 0.1); border:1px solid rgba(239, 68, 68, 0.3); border-radius:var(--radius-md); padding:1rem; font-size:0.82rem; color:#fca5a5;">
+                <div style="font-weight:700; margin-bottom:0.3rem; display:flex; align-items:center; gap:0.4rem;">
+                    <i class="fa-solid fa-shield-halved"></i> Safety Reminder
+                </div>
+                Do not make any advance deposit or viewing fee payment over M-Pesa. Always visit the house, confirm the water pressure and tokens yourself, and sign a lease agreement before sending money.
+            </div>
+        </aside>
+
+    <!-- Tenant Reviews + Submission + Similar Homes -->
+    <div class="detail-card">
+        <h2 class="detail-card-title"><i class="fa-solid fa-star" style="color:var(--gold-accent);"></i> Tenant Reviews</h2>
+        {% if reviews %}
+            {% for r in reviews %}
+            <div class="review-card">
+                <div style="display:flex; justify-content:space-between; gap:0.75rem; align-items:center;">
+                    <strong style="color:#fff; font-size:0.9rem;">{{ r.author_name }}</strong>
+                    <span class="review-stars">{% for i in range(r.rating) %}<i class="fa-solid fa-star"></i>{% endfor %}{% for i in range(5 - r.rating) %}<i class="fa-regular fa-star"></i>{% endfor %}</span>
+                </div>
+                <p style="color:var(--text-secondary); font-size:0.88rem; margin-top:0.4rem;">{{ r.comment }}</p>
+                <small style="color:var(--text-muted);">{{ r.created_at }}</small>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="color:var(--text-muted); font-size:0.9rem;">No tenant reviews yet. Be the first to share your viewing experience.</p>
+        {% endif %}
+        <div class="review-form-card">
+            <h3 style="color:#fff; font-size:0.95rem; margin-bottom:0.5rem;"><i class="fa-solid fa-pen-to-square" style="color:var(--gold-accent);"></i> Share Your Experience</h3>
+            {% if session.get('user_id') %}
+            <form id="reviewForm">
+                <input type="hidden" name="property_id" value="{{ prop.id }}">
+                <label style="font-size:0.82rem; color:var(--text-muted);">Your Rating</label>
+                <div class="star-rating-input" id="starRatingInput">
+                    <span class="star-option" data-value="5"><i class="fa-solid fa-star"></i></span>
+                    <span class="star-option" data-value="4"><i class="fa-solid fa-star"></i></span>
+                    <span class="star-option" data-value="3"><i class="fa-solid fa-star"></i></span>
+                    <span class="star-option" data-value="2"><i class="fa-solid fa-star"></i></span>
+                    <span class="star-option" data-value="1"><i class="fa-solid fa-star"></i></span>
+                </div>
+                <textarea id="reviewComment" rows="3" required placeholder="Water reliability, security, caretaker response..." style="width:100%; margin-top:0.7rem; padding:0.65rem; background:rgba(9,14,26,0.8); border:1px solid var(--border-subtle); border-radius:var(--radius-md); color:#fff;"></textarea>
+                <button type="submit" class="btn btn-primary btn-sm" style="margin-top:0.7rem;">Submit Review</button>
+            </form>
+            {% else %}
+            <p style="font-size:0.87rem; color:var(--text-secondary);">Please <a href="{{ url_for('auth', tab='login') }}" style="color:var(--gold-bright);">sign in</a> to leave a review.</p>
+            {% endif %}
+        </div>
+    </div>
+    {% if similar_properties %}
+    <div class="detail-card" style="margin-top:1.5rem;">
+        <h2 class="detail-card-title"><i class="fa-solid fa-house-circle-check" style="color:var(--gold-accent);"></i> Similar Houses Nearby</h2>
+        <div class="similar-grid">
+            {% for s in similar_properties %}
+            <a href="{{ url_for('property_detail', prop_id=s.id) }}" class="similar-card">
+                {% if s.featured_image %}<img src="{{ s.featured_image }}" alt="{{ s.title }}" loading="lazy">{% endif %}
+                <div class="similar-card-body">
+                    <div style="color:#fff; font-weight:700; font-size:0.88rem;">{{ s.title[:55] }}</div>
+                    <div style="color:var(--text-muted); font-size:0.78rem;">{{ s.estate }} — {{ s.property_type }}</div>
+                    <div style="color:var(--gold-bright); font-weight:800; margin-top:0.25rem;">KSh {{ "{:,.0f}".format(s.monthly_rent) }}/mo</div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    </div>
+</div>
+
+<!-- ==========================================================================
+     MODALS
+     ========================================================================== -->
+
+<!-- 1. Inquiry Modal -->
+<div class="modal-overlay" id="inquiryModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 class="modal-title"><i class="fa-solid fa-envelope"></i> Send Inquiry to {{ prop.landlord_name }}</h3>
+            <button class="btn-close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="inquiryForm">
+                <input type="hidden" name="property_id" value="{{ prop.id }}">
+
+                <div class="form-group-custom" style="margin-bottom:1rem;">
+                    <label>Your Full Name *</label>
+                    <input type="text" name="name" value="{{ current_user.full_name if current_user else '' }}" required style="padding:0.6rem; background:rgba(9,14,26,0.8); border:1px solid var(--border-subtle); border-radius:var(--radius-md); color:#fff;">
+                </div>
+
+                <div class="form-group-custom" style="margin-bottom:1rem;">
+                    <label>Phone Number (Kenyan Format) *</label>
+                    <input type="tel" name="phone" value="{{ current_user.phone if current_user else '+254' }}" required style="padding:0.6rem; background:rgba(9,14,26,0.8); border:1px solid var(--border-subtle); border-radius:var(--radius-md); color:#fff;">
+                </div>
+
+                <div class="form-group-custom" style="margin-bottom:1rem;">
+                    <label>Email Address (Optional)</label>
+                    <input type="email" name="email" value="{{ current_user.email if current_user else '' }}" style="padding:0.6rem; background:rgba(9,14,26,0.8); border:1px solid var(--border-subtle); border-radius:var(--radius-md); color:#fff;">
+                </div>
+
+                <div class="form-group-custom" style="margin-bottom:1.5rem;">
+                    <label>Your Message / Questions *</label>
+                    <textarea name="message" rows="4" required style="padding:0.6rem; background:rgba(9,14,26,0.8); border:1px solid var(--border-subtle); border-radius:var(--radius-md); color:#fff;">Habari {{ prop.landlord_name }}, I am interested in this {{ prop.property_type }} in {{ prop.estate }}. Is it currently available for immediate move-in?</textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width:100%;">
+                    Send Inquiry
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 2. Viewing Modal -->
+<div class="modal-overlay" id="viewingModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 class="modal-title"><i class="fa-solid fa-calendar-check"></i> Request a Viewing Appointment</h3>
+            <button class="btn-close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="viewingForm">
+                <input type="hidden" name="property_id" value="{{ prop.id }}">
+
+                <div class="form-group-custom" style="margin-bottom:1rem;">
+                    <label>Preferred Date *</label>
+                    <input type="date" name="date" required style="padding:0.6rem; background:rgba(9,14,26,0.8); border:1px solid var(--border-subtle); border-radius:var(--radius-md); color:#fff;">
+                </div>
+
+                <div class="form-group-custom" style="margin-bottom:1rem;">
+                    <label>Preferred Time Slot *</label>
+                    <select name="time" required style="padding:0.6rem; background:rgba(9,14,26,0.8); border:1px solid var(--border-subtle); border-radius:var(--radius-md); color:#fff;">
+                        <option value="Morning (9:00 AM - 11:30 AM)">Morning (9:00 AM - 11:30 AM)</option>
+                        <option value="Afternoon (1:00 PM - 3:30 PM)">Afternoon (1:00 PM - 3:30 PM)</option>
+                        <option value="Evening (4:00 PM - 6:00 PM)">Evening (4:00 PM - 6:00 PM)</option>
+                        <option value="Saturday Morning (10:00 AM - 1:00 PM)">Saturday Morning (10:00 AM - 1:00 PM)</option>
+                    </select>
+                </div>
+
+                <div class="form-group-custom" style="margin-bottom:1.5rem;">
+                    <label>Additional Notes or Questions</label>
+                    <textarea name="notes" rows="3" placeholder="e.g. I will be coming with a vehicle to check parking bay access..." style="padding:0.6rem; background:rgba(9,14,26,0.8); border:1px solid var(--border-subtle); border-radius:var(--radius-md); color:#fff;"></textarea>
+                </div>
+
+                <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem;">
+                    <i class="fa-solid fa-circle-info"></i> Viewing this property is 100% free of charge.
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width:100%;">
+                    Confirm Viewing Request
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 3. Report Listing Modal -->
+<div class="modal-overlay" id="reportModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 class="modal-title" style="color:#fca5a5;"><i class="fa-solid fa-triangle-exclamation"></i> Report Suspicious Listing</h3>
+            <button class="btn-close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="reportForm">
+                <input type="hidden" name="property_id" value="{{ prop.id }}">
+
+                <div class="form-group-custom" style="margin-bottom:1rem;">
+                    <label>Reason for Report *</label>
+                    <select name="reason" required style="padding:0.6rem; background:rgba(9,14,26,0.8); border:1px solid var(--border-subtle); border-radius:var(--radius-md); color:#fff;">
+                        <option value="agent_demands_viewing_fee">Agent or contact demands viewing fee / booking fee before visit</option>
+                        <option value="fake_listing">Property does not exist or photos belong to another building</option>
+                        <option value="duplicate_listing">Duplicate listing with conflicting prices</option>
+                        <option value="incorrect_rent">Actual rent or deposit is different from stated</option>
+                        <option value="property_occupied">House is already occupied or off the market</option>
+                        <option value="unreachable_contact">Phone number or contact is invalid or inactive</option>
+                        <option value="other">Other suspicious activity</option>
+                    </select>
+                </div>
+
+                <div class="form-group-custom" style="margin-bottom:1.5rem;">
+                    <label>Details & Evidence *</label>
+                    <textarea name="details" rows="4" required placeholder="Please describe what happened (e.g. phone number asked for KSh 1,000 M-Pesa viewing fee)..." style="padding:0.6rem; background:rgba(9,14,26,0.8); border:1px solid var(--border-subtle); border-radius:var(--radius-md); color:#fff;"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-danger" style="width:100%;">
+                    Submit Report to Compliance Team
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

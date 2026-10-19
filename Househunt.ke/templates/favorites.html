@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}My Saved Properties — HouseHunt Kenya{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2.5rem; padding-bottom: 4rem;">
+    <div class="section-header">
+        <div>
+            <span class="hero-tag"><i class="fa-solid fa-heart"></i> Saved Favorites</span>
+            <h1 style="font-size: 2.25rem; font-weight: 800; color: #fff; margin-top: 0.5rem;">
+                My Shortlisted Houses
+            </h1>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">
+                Keep track of genuine Kenyan properties you are considering before organizing in-person viewings.
+            </p>
+        </div>
+        {% if properties %}
+        <a href="{{ url_for('compare', ids=properties|map(attribute='id')|join(',')) }}" class="btn btn-outline btn-sm">
+            <i class="fa-solid fa-code-compare"></i> Compare All Saved
+        </a>
+        {% endif %}
+    </div>
+
+    {% if properties %}
+    <div class="properties-grid">
+        {% for prop in properties %}
+        <div class="property-card">
+            <div class="card-image-wrap">
+                <img src="{{ prop.featured_image }}" class="card-image" alt="{{ prop.title }}">
+                {% if prop.is_property_verified %}
+                <span class="badge-verified-property">
+                    <i class="fa-solid fa-certificate"></i> Verified
+                </span>
+                {% endif %}
+                <button class="btn-card-fav active" data-prop-id="{{ prop.id }}" title="Remove from favorites">
+                    <i class="fa-solid fa-heart"></i>
+                </button>
+            </div>
+
+            <div class="card-body">
+                <div class="card-location">
+                    <i class="fa-solid fa-location-dot"></i> {{ prop.estate }}, {{ prop.town }}
+                </div>
+                <h3 class="card-title">
+                    <a href="{{ url_for('property_detail', prop_id=prop.id) }}">{{ prop.title }}</a>
+                </h3>
+
+                <div class="card-price-row">
+                    <div class="card-rent">
+                        KSh {{ "{:,.0f}".format(prop.monthly_rent) }} <span>/ mo</span>
+                    </div>
+                    <div class="card-upfront-pill" title="Upfront cash required">
+                        Move-in: <strong>KSh {{ "{:,.0f}".format(prop.total_upfront_cost) }}</strong>
+                    </div>
+                </div>
+
+                <div class="card-pills">
+                    <span class="pill-item"><i class="fa-solid fa-house"></i> {{ prop.property_type }}</span>
+                    <span class="pill-item"><i class="fa-solid fa-droplet"></i> {{ prop.water_source.split(' ')[0] }}</span>
+                </div>
+
+                <div class="card-footer">
+                    <button class="btn btn-secondary btn-sm btn-add-compare" data-prop-id="{{ prop.id }}" data-prop-title="{{ prop.title }}">
+                        <i class="fa-solid fa-code-compare"></i> Compare
+                    </button>
+                    <a href="{{ url_for('property_detail', prop_id=prop.id) }}" class="btn btn-primary btn-sm">
+                        View Details
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 3.5rem; text-align: center;">
+        <i class="fa-regular fa-heart" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+        <h3 style="color: #fff; font-size: 1.35rem; margin-bottom: 0.5rem;">No houses saved yet</h3>
+        <p style="color: var(--text-secondary); max-width: 450px; margin: 0 auto 1.5rem;">
+            Click the heart icon on any property card while searching to save it here for quick access and comparison.
+        </p>
+        <a href="{{ url_for('listings') }}" class="btn btn-primary">
+            <i class="fa-solid fa-house"></i> Browse Available Houses
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

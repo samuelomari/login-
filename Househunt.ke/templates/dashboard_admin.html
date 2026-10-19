@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Moderation & Compliance Console — HouseHunt Kenya{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2.5rem; padding-bottom: 4rem;">
+    <!-- Admin Header -->
+    <div style="margin-bottom: 2rem;">
+        <span class="hero-tag" style="background:rgba(239, 68, 68, 0.15); border-color:rgba(239, 68, 68, 0.4); color:#fca5a5;">
+            <i class="fa-solid fa-shield-halved"></i> Trust, Safety & Compliance Console
+        </span>
+        <h1 style="font-size: 2.25rem; font-weight: 800; color: #fff; margin-top: 0.5rem;">
+            HouseHunt Kenya Platform Administration
+        </h1>
+        <p style="color: var(--text-secondary); font-size: 0.95rem;">
+            Verify genuine Kenyan landlords and registered agents, investigate scam complaints, and eliminate duplicate listings.
+        </p>
+    </div>
+
+    <!-- Platform Stats -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; margin-bottom: 2.5rem;">
+        <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.25rem;">
+            <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Total Platform Users</div>
+            <div style="font-size: 2rem; font-weight: 800; color: #fff; margin-top: 0.2rem;">{{ stats.total_users }}</div>
+        </div>
+        <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.25rem;">
+            <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Total Published Properties</div>
+            <div style="font-size: 2rem; font-weight: 800; color: var(--gold-bright); margin-top: 0.2rem;">{{ stats.total_properties }}</div>
+        </div>
+        <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.25rem;">
+            <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Pending Verifications</div>
+            <div style="font-size: 2rem; font-weight: 800; color: var(--emerald-verified); margin-top: 0.2rem;">{{ stats.pending_verifications }}</div>
+        </div>
+        <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.25rem;">
+            <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Active Scam Reports</div>
+            <div style="font-size: 2rem; font-weight: 800; color: var(--danger); margin-top: 0.2rem;">{{ stats.pending_reports }}</div>
+        </div>
+    </div>
+
+    <!-- Duplicate Listing Scanner Alert (Advanced Feature) -->
+    {% if potential_duplicates %}
+    <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid var(--gold-border); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 2.5rem;">
+        <h3 style="color: var(--gold-bright); font-size: 1.15rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fa-solid fa-clone"></i> Duplicate Listing Detection Engine Alert
+        </h3>
+        <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 1rem;">
+            The automated scanner detected listings in the same estate with matching prices that may indicate duplicate broker posts.
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            {% for dup in potential_duplicates %}
+            <div style="background: rgba(9, 14, 26, 0.8); padding: 0.75rem 1rem; border-radius: var(--radius-sm); display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem;">
+                <div>
+                    <strong>Match found in {{ dup.estate1 }}:</strong> 
+                    <a href="/properties/{{ dup.id1 }}" style="color: var(--gold-accent);">#{{ dup.id1 }} {{ dup.title1 }}</a> 
+                    vs 
+                    <a href="/properties/{{ dup.id2 }}" style="color: var(--gold-accent);">#{{ dup.id2 }} {{ dup.title2 }}</a>
+                    (Both KSh {{ "{:,.0f}".format(dup.rent1) }})
+                </div>
+                <span class="badge-promoted" style="position: static; font-size: 0.7rem;">Flagged for inspection</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Scam & Fake Listing Reports Table -->
+    <div class="detail-card" style="margin-bottom: 2.5rem;">
+        <h2 class="detail-card-title" style="color: #fca5a5;">
+            <i class="fa-solid fa-triangle-exclamation"></i> Suspicious Listing & Scam Reports
+        </h2>
+        {% if pending_reports %}
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--border-subtle); color: var(--text-muted); text-align: left;">
+                        <th style="padding: 0.75rem;">Property</th>
+                        <th style="padding: 0.75rem;">Report Reason</th>
+                        <th style="padding: 0.75rem;">Details & Evidence</th>
+                        <th style="padding: 0.75rem;">Status</th>
+                        <th style="padding: 0.75rem; text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rep in pending_reports %}
+                    <tr style="border-bottom: 1px solid var(--border-subtle);">
+                        <td style="padding: 0.75rem;">
+                            <a href="{{ url_for('property_detail', prop_id=rep.property_id) }}" style="color: var(--gold-accent); font-weight: 600;">
+                                {{ rep.property_title }}
+                            </a>
+                        </td>
+                        <td style="padding: 0.75rem; color: #fff;">
+                            <span style="background: var(--danger-bg); color: #fca5a5; padding: 0.2rem 0.5rem; border-radius: var(--radius-sm); font-size: 0.75rem;">
+                                {{ rep.reason.replace('_', ' ').capitalize() }}
+                            </span>
+                        </td>
+                        <td style="padding: 0.75rem; color: var(--text-secondary); max-width: 320px;">
+                            "{{ rep.details }}"
+                        </td>
+                        <td style="padding: 0.75rem; text-transform: uppercase; font-size: 0.75rem; font-weight: 700; color: {% if rep.status == 'resolved' %}var(--emerald-verified){% else %}var(--gold-bright){% endif %};">
+                            {{ rep.status }}
+                        </td>
+                        <td style="padding: 0.75rem; text-align: right;">
+                            {% if rep.status != 'resolved' %}
+                            <form action="{{ url_for('resolve_report', rep_id=rep.id) }}" method="POST" style="display: inline-flex; gap: 0.4rem;">
+                                <button type="submit" name="status" value="resolved" class="btn btn-primary btn-sm">Resolve</button>
+                                <button type="submit" name="status" value="dismissed" class="btn btn-secondary btn-sm">Dismiss</button>
+                            </form>
+                            {% else %}
+                            <span style="color: var(--emerald-verified);"><i class="fa-solid fa-check"></i> Resolved</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="color: var(--text-muted); font-size: 0.9rem;">No reports recorded.</p>
+        {% endif %}
+    </div>
+
+    <!-- Verification Requests Table -->
+    <div class="detail-card">
+        <h2 class="detail-card-title">
+            <i class="fa-solid fa-certificate" style="color: var(--emerald-verified);"></i> Landlord & Agent Verification Submissions
+        </h2>
+        {% if verification_requests %}
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--border-subtle); color: var(--text-muted); text-align: left;">
+                        <th style="padding: 0.75rem;">User Name</th>
+                        <th style="padding: 0.75rem;">Role</th>
+                        <th style="padding: 0.75rem;">Document Type</th>
+                        <th style="padding: 0.75rem;">Reference / Reg #</th>
+                        <th style="padding: 0.75rem;">Status</th>
+                        <th style="padding: 0.75rem; text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for vr in verification_requests %}
+                    <tr style="border-bottom: 1px solid var(--border-subtle);">
+                        <td style="padding: 0.75rem; font-weight: 600; color: #fff;">{{ vr.user_name }}</td>
+                        <td style="padding: 0.75rem; text-transform: capitalize; color: var(--text-secondary);">{{ vr.user_role }}</td>
+                        <td style="padding: 0.75rem; color: var(--gold-bright);"><i class="fa-solid fa-id-card"></i> {{ vr.document_type }}</td>
+                        <td style="padding: 0.75rem; font-family: monospace; color: #cbd5e1;">{{ vr.document_reference }}</td>
+                        <td style="padding: 0.75rem; text-transform: uppercase; font-size: 0.75rem; font-weight: 700; color: {% if vr.status == 'approved' %}var(--emerald-verified){% else %}var(--gold-bright){% endif %};">
+                            {{ vr.status }}
+                        </td>
+                        <td style="padding: 0.75rem; text-align: right;">
+                            {% if vr.status == 'pending' %}
+                            <form action="{{ url_for('process_verification', vr_id=vr.id) }}" method="POST" style="display: inline-flex; gap: 0.4rem;">
+                                <button type="submit" name="action" value="approved" class="btn btn-primary btn-sm">Approve</button>
+                                <button type="submit" name="action" value="rejected" class="btn btn-danger btn-sm">Reject</button>
+                            </form>
+                            {% else %}
+                            <span style="color: var(--emerald-verified);"><i class="fa-solid fa-check-double"></i> Processed</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="color: var(--text-muted); font-size: 0.9rem;">No verification submissions pending.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
